@@ -16,41 +16,42 @@ import telran.forum.dto.UserRegisterDto;
 public class AccountServiceImpl implements AccountService {
 	@Autowired
 	UserAccountRepository userRepository;
-	
+
 	@Autowired
 	AccountConfiguration accountConfiguration;
-
 
 	@Override
 	public UserProfileDto addUser(UserRegisterDto userRegDto) {
 		if (userRepository.existsById(userRegDto.getId())) {
 			throw new UserExistException();
 		}
-		String hashPassword = accountConfiguration
-				.getEncodePassword(userRegDto.getPassword());
-		UserAccount userAccount = UserAccount.builder()
-				.id(userRegDto.getId())
-				.password(hashPassword)
-				.firstName(userRegDto.getFirstName())
-				.lastName(userRegDto.getLastName())
-				.role("User")
-				.expDate(LocalDateTime.now().plusDays(accountConfiguration.getExpPeriod()))
-				.build();
+		String hashPassword = accountConfiguration.getEncodePassword(userRegDto.getPassword());
+		UserAccount userAccount = UserAccount.builder().id(userRegDto.getId()).password(hashPassword)
+				.firstName(userRegDto.getFirstName()).lastName(userRegDto.getLastName()).role("User")
+				.expDate(LocalDateTime.now().plusDays(accountConfiguration.getExpPeriod())).build();
 		userRepository.save(userAccount);
-		return new UserProfileDto(userRegDto.getId(),
-				userRegDto.getFirstName(), userRegDto.getLastName());
+		return new UserProfileDto(userRegDto.getId(), userRegDto.getFirstName(), userRegDto.getLastName());
 	}
 
 	@Override
 	public UserProfileDto editUser(UserRegisterDto userRegDto) {
-		// TODO Auto-generated method stub
-		return null;
+
+		UserAccount userAccount = userRepository.findById(userRegDto.getId()).get();
+		userAccount.setFirstName(userRegDto.getFirstName());
+		userAccount.setLastName(userRegDto.getLastName());
+		userRepository.save(userAccount);
+		return new UserProfileDto(userAccount.getId(), userAccount.getFirstName(), userAccount.getLastName());
+
 	}
 
 	@Override
 	public UserProfileDto removeUser(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		UserAccount userAccount = userRepository.findById(id).get();
+		userRepository.delete(userAccount);
+		return new UserProfileDto(userAccount.getId(), userAccount.getFirstName(), userAccount.getLastName());
+
+		
 	}
 
 	@Override
